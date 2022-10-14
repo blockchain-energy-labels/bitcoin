@@ -57,8 +57,8 @@ def show_average_hash_rate(year,hashrate):
 
 
 if __name__ == "__main__": 
-    all_time_hash_rates_df = pd.read_csv("csv location")
-    all_time_market_price_df = pd.read_csv("csv location")
+    all_time_hash_rates_df = pd.read_csv("/Users/devanshuhaldar/Desktop/RPI/Blockchain-Energy-Labels/bitcoin/data/bitcoin-all-time-hash-rate.csv")
+    all_time_market_price_df = pd.read_csv("/Users/devanshuhaldar/Desktop/RPI/Blockchain-Energy-Labels/bitcoin/data/bitcoin-all-time-market-price.csv")
 
 
     hash_rate_averages = average_hash_rates(all_time_hash_rates_df)
@@ -72,44 +72,29 @@ if __name__ == "__main__":
     # for key,val in market_prices.items():
     #     print("Year",key, " --> ",val)
 
-    #merge = pd.DataFrame({'date' : hash_rate_averages[0], 'hash-rate' : hash_rate_averages[1]})
-    # merge["date"] = pd.to_datetime(merge["date"])
-    # df1 = merge.groupby(merge["date"].dt.to_period("M")).sum()
-    # df1 = df1.resample("M").asfreq().fillna(0)
-    # df1.plot(kind = 'bar')
-    # plt.show()
-    # print(merge["date"])
-    # year = int(merge["date"][0][:4])
-    # day = int(merge["date"][0][5:7])
-    # month = int(merge["date"][0][8:10])
-    # year2 = int(merge["date"][len(merge["date"])-1][:4])
-    # day2 = int(merge["date"][len(merge["date"])-1][5:7])
-    # month2 =int(merge["date"][len(merge["date"])-1][8:10])
-    # dates = mdates.drange(dt.datetime(year, month, day), dt.datetime(year2, month2, day2), dt.timedelta(days = 1))
-    # fig, ax = plt.subplots()
-    # width = np.diff(dates).min()
-    # counts = merge['hash-rate'].to_numpy()
-    # print(len(dates))
-    # print(len(counts))
-    # ax.bar(dates,counts, align= 'center',width = width)
-    # ax.xaxis_date()
-    # fig.autofmt_xdate()
-    # plt.show()  
+    #plot average hash rates by year 2009 - 2022
+    # year = []
+    # hashrate = []
+    # for yr, hr in hash_rate_averages.items():
+    #     year.append(yr)
+    #     hashrate.append(hr)
+    # show_average_hash_rate(year,hashrate)
+
+   
+    year = all_time_hash_rates_df['timestamp'].to_numpy()
+    year = [dt.datetime(int(yr[:4]), int(yr[5:7]), int(yr[8:10])) for yr in year] #removing timestamps and only having dates
+    hashrate = all_time_hash_rates_df['hash-rate'].to_numpy()
+    plt.plot(year, hashrate, label = "Hash-Rate")
+    plt.title("hash rate vs year all time")
+    plt.xlabel("year")
+    plt.ylabel("hashrate")
+    plt.show()
+
+
+
+
+
+
+
     
- 
-
-
-    # df['date'] = pd.to_datetime(df['date'])
-    # df1 = df.groupby(df['date'].dt.to_period('M')).sum()
-    # df1 = df1.resample('M').asfreq().fillna(0)
-    # df1.plot(kind='bar')
-
-
-
-    year = []
-    hashrate = []
-    for yr, hr in hash_rate_averages.items():
-        year.append(yr)
-        hashrate.append(hr)
-    show_average_hash_rate(year,hashrate)
     
