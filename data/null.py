@@ -44,8 +44,8 @@ def average_market_price(df): # returns map of average market price for years 20
 
 
 if __name__ == "__main__": 
-    all_time_hash_rates_df = pd.read_csv("/Users/devanshuhaldar/Desktop/RPI/Blockchain-Energy-Labels/Bitcoin/data/bitcoin-all-time-hash-rate.csv")
-    all_time_market_price_df = pd.read_csv("/Users/devanshuhaldar/Desktop/RPI/Blockchain-Energy-Labels/Bitcoin/data/bitcoin-all-time-market-price.csv")
+    all_time_hash_rates_df = pd.read_csv("csv location")
+    all_time_market_price_df = pd.read_csv("csv location")
 
 
     hash_rate_averages = average_hash_rates(all_time_hash_rates_df)
