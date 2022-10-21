@@ -140,7 +140,7 @@ if __name__ == "__main__":
     # ends up being the same because multiplied by constants --> I could multiply power efficiency with average per each year. 
     plot_power_req_per_cryptonetwork(all_time_hash_rates_df)
     plot_hash_rate(all_time_hash_rates_df, all_time_market_price_df)
-    plot_hash_rate_vs_market_price(all_time_hash_rates_df, all_time_market_price_df)ß
+    plot_hash_rate_vs_market_price(all_time_hash_rates_df, all_time_market_price_df)
     #  Network velocity ($ Us per hour)
 
 
