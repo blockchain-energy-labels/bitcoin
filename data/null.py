@@ -1,13 +1,18 @@
 # Bitcoin Data
 # Measuring hash rates --> measures energy usage of the blockchain
 
+from locale import D_FMT
+from re import L
+from sre_parse import State
+from time import strftime
 import pandas as pd
 import matplotlib.pyplot as plt
 import datetime as dt
 import matplotlib.dates as mdates
 import numpy as np
-import os
+import statistics 
 
+# Hash Rate correlates to energy usage
 def average_hash_rates(df): #returns map of average hash rates for years 2009 - 2022
     m = {} # year : array of hash-rates
     for index,row in df.iterrows(): 
@@ -24,6 +29,7 @@ def average_hash_rates(df): #returns map of average hash rates for years 2009 - 
 
     return averages
 
+#market price. values required for future calculations
 def average_market_price(df): # returns map of average market price for years 2009 - 2022
     m = {}
     for index, row in df.iterrows():
@@ -39,7 +45,8 @@ def average_market_price(df): # returns map of average market price for years 20
         averages[key] = avg
     return averages
 
-def plot_hash_rate(df,df2):
+#Plots hash rate 2009 - 2022
+def plot_hash_rate(df):
     year = df['timestamp'].to_numpy()
     year = [dt.datetime(int(yr[:4]), int(yr[5:7]), int(yr[8:10])) for yr in year] #removing timestamps and only having dates
     hashrate = df['hash-rate'].to_numpy()
@@ -48,12 +55,10 @@ def plot_hash_rate(df,df2):
     plt.title("Bitcoin Energy Usage")
     plt.xlabel("Year")
     plt.ylabel("Hash-Rate (hashes/second)")
-
-    plt.show()
-
-
-def plot_hash_rate_vs_market_price(df, df2):
     
+
+#Plots hash rate compared to market price 2009 - 2022
+def plot_hash_rate_vs_market_price(df, df2):
     year = df['timestamp'].to_numpy()
     year = [dt.datetime(int(yr[:4]), int(yr[5:7]), int(yr[8:10])) for yr in year] #removing timestamps and only having dates
     hashrate = df['hash-rate'].to_numpy()
@@ -74,8 +79,27 @@ def plot_hash_rate_vs_market_price(df, df2):
     
     plt.title("Market Price & Bitcoin Energy Usage")
     
-    plt.show()
+    
 
+
+# Amount of US $ generated per hour
+def plot_network_velocity(df):
+    year = df['timestamp'].to_numpy()
+    year = [dt.datetime(int(yr[:4]), int(yr[5:7]), int(yr[8:10])) for yr in year] #removing timestamps and only having dates
+    market = df['market-price'].to_numpy()
+
+    temp = 6.25/6 #coin reward per block / # of blocks generated per hour
+    market = [price * temp for price in market]
+
+    plt.plot(year,market,label = "network velocity")
+    plt.title("Bitcoin Network Velocity (2009-2022)")
+    plt.xlabel("Year")
+    plt.ylabel("Network Velocity (US $ per Hour)")
+    
+
+    return year, market
+
+#plots market price 2009 - 2022
 def plot_market_price(df):
     year = df['timestamp'].to_numpy()
     year = [dt.datetime(int(yr[:4]), int(yr[5:7]), int(yr[8:10])) for yr in year] #removing timestamps and only having dates
@@ -84,12 +108,18 @@ def plot_market_price(df):
     plt.title("Bitcoin Market Price")
     plt.xlabel("Year")
     plt.ylabel("Market Price")
-   # plt.show()
     
-def plot_power_req_per_cryptonetwork(df):
-    # P (power requirement per cryptonetwork) = HR(hashes/second) x PE(Joules/ Hash) x 2.78x10^{-10} x 3600
-    # using power efficiency of a mining machine in 2017
+    
+def calculate_power(df): #returns list of power for each date
+    year = df['timestamp'].to_numpy()
+    year = [dt.datetime(int(yr[:4]), int(yr[5:7]), int(yr[8:10])) for yr in year] #removing timestamps and only having dates
+    hashrate = df['hash-rate'].to_numpy()
+    temp = .15 * 2.78 * 10**(-10) * 3600
+    powers = [p * temp for p in hashrate] # for other functions such as generation of 1 US dollar
+    return year, powers
 
+#plots power requirement averages of cryptonetwork
+def plot_power_averages(df):
     m = average_hash_rates(df)
     years, averages = [], []
     for yr, avg in m.items():
@@ -103,46 +133,99 @@ def plot_power_req_per_cryptonetwork(df):
     plt.title('Power Requirement of Bitcoin Network (2009-2022)')
     plt.xlabel('Year')
     plt.ylabel('Power (MegaWatts)')
-    plt.show()
-        
+    
+
+def plot_generate_USD(year1,year2,velocity,powers):
+    # Energy required for 1 US dollar
+    # Power / Velocity * 3600
+    year2 = year2[3:]
+    velocity = velocity[3:]
+    res = []
+    print(len(year1), len(year2), len(velocity), len(powers))
+
+    for i in range(len(year1)):
+        res.append(powers[i]/velocity[i] * 3600) 
+
+    plt.plot(year1, res)
+    plt.title("Energy Required to Generate 1 USD")
+    plt.xlabel("Year")
+    plt.ylabel("Energy (MegaJewels/US$)")
+    
+
+def calculate_N_c(year, P): #function to support plot_daily_energy and carbon emission by state. Calculates values for daily energy required 
+    x = 6/6.25 * 1000 #blocks generated per hour * energy supply /coins mined per block
+    res = [p * x for p in P]
+    return res
+
+def plot_daily_energy(year, P):
+    #P * t_b (how many blocks generated per hour) * 1000 / 6.25      t_b = 6
+    res = calculate_N_c(year,P)
+  
+    plt.plot(year, res)
+    plt.title("Daily Energy to Produce a Coin")
+    plt.xlabel("Year")
+    plt.ylabel("Energy (KWH/Coins Mined)")
+    
+    
+
+# uses carbon factors from 2021 for each state
+# len(states) = len(carbon_factors)
+def plot_carbon_emission_states(states,carbon_factors, N_c): #carbon factor --> lbs/kWH
+    
+    co2 = []
+    for i in range(len(states)):
+        co2.append( carbon_factors[i] * N_c )
+
+    plt.bar(states, co2)
+    plt.xlabel("States")
+    plt.ylabel("Co2 Emitted (lbs)")
+    plt.title("Co2 Emitted Per BitCoin Mined")
+    
+
+
 
 if __name__ == "__main__": 
     all_time_hash_rates_df = pd.read_csv("data/bitcoin-all-time-hash-rate.csv")
     all_time_market_price_df = pd.read_csv("data/bitcoin-all-time-market-price.csv")
-    
+    state_emission_factors_df = pd.read_csv("data/state_emission_factor.csv")
 
     hash_rate_averages = average_hash_rates(all_time_hash_rates_df)
     market_prices = average_market_price(all_time_market_price_df)
-    
-    #print average hash rates for years 2009 -- 2022     -->     Energy bitcoin uses
-    # for key,val in hash_rate_averages.items(): 
-    #     print("Year",key, " --> ", val)
-    
-    #print market price for years 2009 - 2022
-    # for key,val in market_prices.items():
-    #     print("Year",key, " --> ",val)
 
+    #PLOTS: 
 
-    #plots: 
-
-    #plot average hash rates 2009 - 2022
-    # plot_hash_rate(all_time_hash_rates_df)
-    # plt.show()
+    # plot average hash rates 2009 - 2022
+    plot_hash_rate(all_time_hash_rates_df)
+    plt.show()
     #plot market price for years 2009 - 2022
-    # plot_market_price(all_time_market_price_df)
-    # plt.show()
-
-
-    
-    # 2017-2018 .015 JH^-1 
-
-    # P (power requirement per cryptonetwork) = HR(hashes/second) x PE(Joules/ Hash) x 2.78x10^{-10} x 3600 
-    # ends up being the same because multiplied by constants --> I could multiply power efficiency with average per each year. 
-    plot_power_req_per_cryptonetwork(all_time_hash_rates_df)
-    plot_hash_rate(all_time_hash_rates_df, all_time_market_price_df)
+    plot_market_price(all_time_market_price_df)
+    plt.show()
+    year1, powers = calculate_power(all_time_hash_rates_df)
     plot_hash_rate_vs_market_price(all_time_hash_rates_df, all_time_market_price_df)
-    #  Network velocity ($ Us per hour)
+    plt.show()
+    #Network velocity ($ Us per hour)
+    year2, market = plot_network_velocity(all_time_market_price_df)
+    plt.show()
 
+    # Energy required for 1 US dollar
+    plot_generate_USD(year1, year2, market, powers)
+    plt.show()
+
+    #daily energy required to produce a coin on a given day 
+    plot_daily_energy(year1,powers)
+    plt.show()
+
+    #  Carbon emissions 
+    states, carbon_factor = [], []
+    for index, row in state_emission_factors_df.iterrows():
+        states.append(row["State"])
+        carbon_factor.append(row["lbs/kWH"])
+    
+    N_c = calculate_N_c(year1, powers)
+    N_c = statistics.median(N_c)
+
+    plot_carbon_emission_states(states,carbon_factor, N_c) #carbon emitted in lbs per coin mined
+    plt.show()
 
 
 
