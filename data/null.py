@@ -11,6 +11,8 @@ import datetime as dt
 import matplotlib.dates as mdates
 import numpy as np
 import statistics 
+import json
+import csv 
 
 # Hash Rate correlates to energy usage
 def average_hash_rates(df): #returns map of average hash rates for years 2009 - 2022
@@ -55,7 +57,7 @@ def plot_hash_rate(df):
     plt.title("Bitcoin Energy Usage")
     plt.xlabel("Year")
     plt.ylabel("Hash-Rate (hashes/second)")
-    
+    plt.show()
 
 #Plots hash rate compared to market price 2009 - 2022
 def plot_hash_rate_vs_market_price(df, df2):
@@ -78,7 +80,7 @@ def plot_hash_rate_vs_market_price(df, df2):
     ax2.set_ylabel("Market-Price ($)", color = "blue")
     
     plt.title("Market Price & Bitcoin Energy Usage")
-    
+    plt.show()
     
 
 
@@ -95,7 +97,7 @@ def plot_network_velocity(df):
     plt.title("Bitcoin Network Velocity (2009-2022)")
     plt.xlabel("Year")
     plt.ylabel("Network Velocity (US $ per Hour)")
-    
+    plt.show()
 
     return year, market
 
@@ -108,6 +110,7 @@ def plot_market_price(df):
     plt.title("Bitcoin Market Price")
     plt.xlabel("Year")
     plt.ylabel("Market Price")
+    plt.show()
     
     
 def calculate_power(df): #returns list of power for each date
@@ -133,6 +136,7 @@ def plot_power_averages(df):
     plt.title('Power Requirement of Bitcoin Network (2009-2022)')
     plt.xlabel('Year')
     plt.ylabel('Power (MegaWatts)')
+    plt.show()
     
 
 def plot_generate_USD(year1,year2,velocity,powers):
@@ -141,7 +145,6 @@ def plot_generate_USD(year1,year2,velocity,powers):
     year2 = year2[3:]
     velocity = velocity[3:]
     res = []
-    print(len(year1), len(year2), len(velocity), len(powers))
 
     for i in range(len(year1)):
         res.append(powers[i]/velocity[i] * 3600) 
@@ -150,6 +153,7 @@ def plot_generate_USD(year1,year2,velocity,powers):
     plt.title("Energy Required to Generate 1 USD")
     plt.xlabel("Year")
     plt.ylabel("Energy (MegaJewels/US$)")
+    plt.show()
     
 
 def calculate_N_c(year, P): #function to support plot_daily_energy and carbon emission by state. Calculates values for daily energy required 
@@ -165,21 +169,18 @@ def plot_daily_energy(year, P):
     plt.title("Daily Energy to Produce a Coin")
     plt.xlabel("Year")
     plt.ylabel("Energy (KWH/Coins Mined)")
-    
+    plt.show()
     
 
 # uses carbon factors from 2021 for each state
 # len(states) = len(carbon_factors)
-def plot_carbon_emission_states(states,carbon_factors, N_c): #carbon factor --> lbs/kWH
-    
-    co2 = []
-    for i in range(len(states)):
-        co2.append( carbon_factors[i] * N_c )
+def plot_carbon_emission_states(states,co2): #carbon factor --> lbs/kWH
 
-    plt.bar(states, co2)
+    plt.bar(states,co2)
     plt.xlabel("States")
     plt.ylabel("Co2 Emitted (lbs)")
     plt.title("Co2 Emitted Per BitCoin Mined")
+    plt.show()
     
 
 
@@ -195,28 +196,29 @@ if __name__ == "__main__":
     #PLOTS: 
 
     # plot average hash rates 2009 - 2022
-    plot_hash_rate(all_time_hash_rates_df)
-    plt.show()
+    #plot_hash_rate(all_time_hash_rates_df)
+    
     #plot market price for years 2009 - 2022
-    plot_market_price(all_time_market_price_df)
-    plt.show()
+    #plot_market_price(all_time_market_price_df)
+    
     year1, powers = calculate_power(all_time_hash_rates_df)
-    plot_hash_rate_vs_market_price(all_time_hash_rates_df, all_time_market_price_df)
-    plt.show()
+    #plot_hash_rate_vs_market_price(all_time_hash_rates_df, all_time_market_price_df)
+
+    
     #Network velocity ($ Us per hour)
-    year2, market = plot_network_velocity(all_time_market_price_df)
-    plt.show()
+    #year2, market = plot_network_velocity(all_time_market_price_df)
+    
 
     # Energy required for 1 US dollar
-    plot_generate_USD(year1, year2, market, powers)
-    plt.show()
+    #plot_generate_USD(year1, year2, market, powers)
+    
 
     #daily energy required to produce a coin on a given day 
-    plot_daily_energy(year1,powers)
-    plt.show()
+    #plot_daily_energy(year1,powers)
+    
 
     #  Carbon emissions 
-    states, carbon_factor = [], []
+    states, carbon_factor, co2 = [], [], []
     for index, row in state_emission_factors_df.iterrows():
         states.append(row["State"])
         carbon_factor.append(row["lbs/kWH"])
@@ -224,10 +226,20 @@ if __name__ == "__main__":
     N_c = calculate_N_c(year1, powers)
     N_c = statistics.median(N_c)
 
-    plot_carbon_emission_states(states,carbon_factor, N_c) #carbon emitted in lbs per coin mined
-    plt.show()
-
-
-
     
+    for i in range(len(states)):
+        co2.append(carbon_factor[i] * N_c )
+    plot_carbon_emission_states(states,co2) #carbon emitted in lbs per coin mined
+
+    state_dict = {}
+    for i in range(len(states)):
+        state_dict[states[i]] = co2[i]
+    # jsonString = json.dumps(state_dict)
+    # jsonFile = open("state_co2_data.json", "w")
+    # jsonFile.write(jsonString)
+    # jsonFile.close() #json file will be used for d3 map data'
     
+    # with open('Example.csv', 'w') as csv_file:  
+    #     writer = csv.writer(csv_file)
+    #     for key, value in state_dict.items():
+    #         writer.writerow([key, value])
