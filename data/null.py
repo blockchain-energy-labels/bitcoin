@@ -231,9 +231,17 @@ if __name__ == "__main__":
         co2.append(carbon_factor[i] * N_c )
     plot_carbon_emission_states(states,co2) #carbon emitted in lbs per coin mined
 
-    state_dict = {}
+    state_dict_value = {}
+    total = 0
     for i in range(len(states)):
-        state_dict[states[i]] = co2[i]
+        state_dict_value[states[i]] = co2[i]
+        total += co2[i]
+
+    state_dict_percent = {}
+    for i in range(len(states)):
+        state_dict_percent[states[i]] = co2[i]/total
+        print(states[i], ",", co2[i]/total)
+
     # jsonString = json.dumps(state_dict)
     # jsonFile = open("state_co2_data.json", "w")
     # jsonFile.write(jsonString)
