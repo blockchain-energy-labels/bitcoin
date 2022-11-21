@@ -46,7 +46,7 @@
 
 <script type="text/javascript">
 
-var url = "hash-rate-data.json"
+var url = "daily_energy.json"
 
 // 1. Load the data from external source
 d3.json(url, function(data) {
@@ -75,7 +75,7 @@ d3.json(url, function(data) {
                    .range([margin.left, width-margin.right])
 
     var yScale = d3.scaleLinear()
-                   .domain([0, 250000000]) //yMax instead of hardcoded 250,000,000
+                   .domain([0, 40000]) //yMax instead of hardcoded 250,000,000
                    .range([height-margin.bottom, margin.top])
 
     // 4. Draw and transform/translate horizontal and vertical axes
@@ -116,7 +116,7 @@ d3.json(url, function(data) {
                   .style("left", event.pageX+10+"px")
                   .style("top", event.pageY-80+"px")
                   .attr("data-date", d[0])
-                  .html(d[0] + "</br>" + d[1] + " Billion USD" )
+                  .html(d[0] + "</br>" + d[1] + "$" )
        })
        .on("mousemove", function(){
            tooltip.style("left", event.pageX+10+"px")
@@ -137,13 +137,13 @@ d3.json(url, function(data) {
          .attr("x", -height/2)
          .attr("transform", "rotate(-90)")
          .attr("class", "label")
-         .text("Hash Rate (h/s)");
+         .text("Energy to produce 1 Bitcoin(kWh/coins mined)");
 
     svg.append("text")
         .attr("x", margin.left + (width - margin.left - margin.right) / 2)
         .attr("y", margin.top / 2)
         .attr("id", "title")
-        .text("Bitcoin Energy Usage");
+        .text("Daily Energy Required to Produce Coin");
 }) 
 </script>
 </body>

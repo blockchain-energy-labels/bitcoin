@@ -169,6 +169,11 @@ def plot_daily_energy(year, P):
     #P * t_b (how many blocks generated per hour) * 1000 / 6.25      t_b = 6
     res = calculate_N_c(year,P)
     
+    csvarr = []            #       to create a csv for js files
+    for i in range(len(year)):
+        csvarr.append((year[i].date(),res[i]))
+    pd.DataFrame(csvarr).to_csv("daily_energy_coin_csv", index = False)
+
     plt.plot(year, res)
     plt.title("Daily Energy to Produce a Coin")
     plt.xlabel("Year")
@@ -179,7 +184,6 @@ def plot_daily_energy(year, P):
 # uses carbon factors from 2021 for each state
 # len(states) = len(carbon_factors)
 def plot_carbon_emission_states(states,co2): #carbon factor --> lbs/kWH
-
     plt.bar(states,co2)
     plt.xlabel("States")
     plt.ylabel("Co2 Emitted (lbs)")
@@ -218,7 +222,8 @@ if __name__ == "__main__":
     
 
     #daily energy required to produce a coin on a given day 
-   # plot_daily_energy(year1,powers)
+    plot_daily_energy(
+        year1,powers)
     
 
     #  Carbon emissions 
