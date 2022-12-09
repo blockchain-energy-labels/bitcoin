@@ -210,7 +210,7 @@ if __name__ == "__main__":
     #plot_market_price(all_time_market_price_df)
     
     year1, powers = calculate_power(all_time_hash_rates_df)
-   # plot_hash_rate_vs_market_price(all_time_hash_rates_df, all_time_market_price_df)
+    plot_hash_rate_vs_market_price(all_time_hash_rates_df, all_time_market_price_df)
 
     
     #Network velocity ($ Us per hour)
